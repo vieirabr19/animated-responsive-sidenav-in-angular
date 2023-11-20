@@ -14,6 +14,9 @@ import {
 } from '@angular/animations';
 
 import { navbarData } from './nav-data';
+import { INavBarData } from './types';
+import { fadeInOut } from './helper';
+import { Router } from '@angular/router';
 
 interface SideNavToggle {
   screenWidth: number;
@@ -25,16 +28,7 @@ interface SideNavToggle {
   templateUrl: './sidenav.component.html',
   styleUrls: ['./sidenav.component.scss'],
   animations: [
-    trigger('fadeInOut', [
-      transition(':enter', [
-        style({ opacity: 0 }),
-        animate('350ms', style({ opacity: 1 })),
-      ]),
-      transition(':leave', [
-        style({ opacity: 1 }),
-        animate('350ms', style({ opacity: 0 })),
-      ]),
-    ]),
+    fadeInOut,
     trigger('rotate', [
       transition(':enter', [
         animate(
@@ -54,11 +48,11 @@ export class SidenavComponent implements OnInit {
   collapsed = false;
   screenWidth = 0;
   navData = navbarData;
+  multiple = false;
 
   @HostListener('window:resize', ['$event'])
   onResize(event: any) {
     this.screenWidth = window.innerWidth;
-    console.log(this.screenWidth);
 
     if (this.screenWidth <= 768) {
       this.collapsed = false;
@@ -68,6 +62,8 @@ export class SidenavComponent implements OnInit {
       });
     }
   }
+
+  constructor(public router: Router) {}
 
   ngOnInit(): void {
     this.screenWidth = window.innerWidth;
@@ -87,5 +83,24 @@ export class SidenavComponent implements OnInit {
       collapsed: this.collapsed,
       screenWidth: this.screenWidth,
     });
+  }
+
+  handleClick(item: INavBarData) {
+    this.shinkItems(item);
+    item.expanded = !item.expanded;
+  }
+
+  getActiveClass(data: INavBarData): string {
+    return this.router.url.includes(data.routerLink) ? 'active' : '';
+  }
+
+  shinkItems(item: INavBarData): void {
+    if (!this.multiple) {
+      for (let modelItem of this.navData) {
+        if (item !== modelItem && modelItem.expanded) {
+          modelItem.expanded = false;
+        }
+      }
+    }
   }
 }
